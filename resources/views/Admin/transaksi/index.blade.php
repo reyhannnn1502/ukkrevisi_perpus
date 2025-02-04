@@ -16,6 +16,17 @@
         </div>
     @endif
 
+    <!-- Debug section - temporary -->
+    @if(isset($transaksis))
+        <div class="alert alert-info">
+            Jumlah transaksi: {{ $transaksis->count() }}
+        </div>
+    @else
+        <div class="alert alert-warning">
+            Variable $transaksis tidak tersedia
+        </div>
+    @endif
+
     <div class="card shadow mb-4">
         <div class="card-header py-3">
             <h6 class="m-0 font-weight-bold text-primary">Data Transaksi Peminjaman</h6>
@@ -36,80 +47,92 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($transaksis as $t)
-                        <tr>
-                            <td>TRX-{{ str_pad($t->id_transaksi, 5, '0', STR_PAD_LEFT) }}</td>
-                            <td>
-                                {{ $t->anggota->nama_anggota }}<br>
-                                <small class="text-muted">{{ $t->anggota->kode_anggota }}</small>
-                            </td>
-                            <td>
-                                {{ $t->pustaka->judul_pustaka }}<br>
-                                <small class="text-muted">ISBN: {{ $t->pustaka->isbn }}</small>
-                            </td>
-                            <td>{{ \Carbon\Carbon::parse($t->tgl_pinjam)->format('d/m/Y') }}</td>
-                            <td>{{ \Carbon\Carbon::parse($t->tgl_kembali)->format('d/m/Y') }}</td>
-                            <td>
-                                @if($t->status_approval == 'pending')
-                                    <span class="badge bg-warning">Menunggu Persetujuan</span>
-                                @elseif($t->status_approval == 'approved')
-                                    @if(!$t->tgl_pengembalian)
-                                        @if(\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($t->tgl_kembali)))
-                                            <span class="badge bg-danger">Terlambat</span>
+                        @forelse($transaksis as $t)
+                            <tr>
+                                <td>TRX-{{ str_pad($t->id_transaksi, 5, '0', STR_PAD_LEFT) }}</td>
+                                <td>
+                                    @if($t->anggota)
+                                        {{ $t->anggota->nama_anggota }}<br>
+                                        <small class="text-muted">{{ $t->anggota->kode_anggota }}</small>
+                                    @else
+                                        <span class="text-danger">Data Anggota Tidak Ditemukan</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($t->pustaka)
+                                        {{ $t->pustaka->judul_pustaka }}<br>
+                                        <small class="text-muted">ISBN: {{ $t->pustaka->isbn }}</small>
+                                    @else
+                                        <span class="text-danger">Data Pustaka Tidak Ditemukan</span>
+                                    @endif
+                                </td>
+                                <td>{{ \Carbon\Carbon::parse($t->tgl_pinjam)->format('d/m/Y') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($t->tgl_kembali)->format('d/m/Y') }}</td>
+                                <td>
+                                    @if($t->status_approval == 'pending')
+                                        <span class="badge badge-warning">Menunggu Persetujuan</span>
+                                    @elseif($t->status_approval == 'approved')
+                                        @if(!$t->tgl_pengembalian)
+                                            @if(\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($t->tgl_kembali)))
+                                                <span class="badge badge-danger">Terlambat</span>
+                                            @else
+                                                <span class="badge badge-info">Dipinjam</span>
+                                            @endif
                                         @else
-                                            <span class="badge bg-info">Dipinjam</span>
+                                            <span class="badge badge-success">Dikembalikan</span>
                                         @endif
                                     @else
-                                        <span class="badge bg-success">Dikembalikan</span>
+                                        <span class="badge badge-danger">Ditolak</span>
                                     @endif
-                                @else
-                                    <span class="badge bg-danger">Ditolak</span>
-                                @endif
-                            </td>
-                            <td>
-                                @php
-                                    $denda = 0;
-                                    if(!$t->tgl_pengembalian) {
-                                        $tglKembali = \Carbon\Carbon::parse($t->tgl_kembali);
-                                        if($tglKembali->lt(\Carbon\Carbon::now())) {
-                                            $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * $t->pustaka->denda_terlambat;
+                                </td>
+                                <td>
+                                    @php
+                                        $denda = 0;
+                                        if(!$t->tgl_pengembalian && $t->status_approval == 'approved') {
+                                            $tglKembali = \Carbon\Carbon::parse($t->tgl_kembali);
+                                            if($tglKembali->lt(\Carbon\Carbon::now())) {
+                                                $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * ($t->pustaka->denda_terlambat ?? 0);
+                                            }
                                         }
-                                    }
-                                @endphp
-                                Rp {{ number_format($denda) }}
-                            </td>
-                            <td>
-                                @if($t->status_approval == 'pending')
-                                    <form action="{{ route('admin.transaksi.approve', $t->id_transaksi) }}" 
-                                          method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-success btn-sm"
-                                                onclick="return confirm('Setujui peminjaman ini?')">
-                                            Setujui
+                                    @endphp
+                                    Rp {{ number_format($denda, 0, ',', '.') }}
+                                </td>
+                                <td>
+                                    @if($t->status_approval == 'pending')
+                                        <form action="{{ route('admin.transaksi.approve', $t->id_transaksi) }}" 
+                                              method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" class="btn btn-success btn-sm"
+                                                    onclick="return confirm('Setujui peminjaman ini?')">
+                                                Setujui
+                                            </button>
+                                        </form>
+                                        <button type="button" class="btn btn-danger btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#rejectModal{{ $t->id_transaksi }}">
+                                            Tolak
                                         </button>
-                                    </form>
-                                    <button type="button" class="btn btn-danger btn-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#rejectModal{{ $t->id_transaksi }}">
-                                        Tolak
-                                    </button>
-                                @elseif($t->status_approval == 'approved' && !$t->tgl_pengembalian)
-                                    <form action="{{ route('admin.transaksi.pengembalian', $t->id_transaksi) }}" 
-                                          method="POST" class="d-inline">
-                                        @csrf
-                                        @method('PUT')
-                                        <button type="submit" class="btn btn-primary btn-sm"
-                                                onclick="return confirm('Konfirmasi pengembalian buku?')">
-                                            Terima Kembali
-                                        </button>
-                                    </form>
-                                @else
-                                    <button class="btn btn-secondary btn-sm" disabled>Selesai</button>
-                                @endif
-                            </td>
-                        </tr>
-                        @endforeach
+                                    @elseif($t->status_approval == 'approved' && !$t->tgl_pengembalian)
+                                        <form action="{{ route('admin.transaksi.pengembalian', $t->id_transaksi) }}" 
+                                              method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="submit" class="btn btn-primary btn-sm"
+                                                    onclick="return confirm('Konfirmasi pengembalian buku?')">
+                                                Terima Kembali
+                                            </button>
+                                        </form>
+                                    @else
+                                        <button class="btn btn-secondary btn-sm" disabled>Selesai</button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="text-center">Tidak ada data transaksi</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
@@ -146,10 +169,10 @@
 @endforeach
 @endsection
 
-@section('scripts')
+@push('scripts')
 <script>
     $(document).ready(function() {
         $('#dataTable').DataTable();
     });
 </script>
-@endsection 
+@endpush 
