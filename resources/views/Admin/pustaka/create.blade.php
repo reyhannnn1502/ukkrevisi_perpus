@@ -109,6 +109,7 @@
                                 <option value="Hilang">Hilang</option>
                             </select>
                         </div>
+                        <input type="hidden" name="fp" value="1">
                     </div>
                 </div>
 
@@ -118,4 +119,4 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection

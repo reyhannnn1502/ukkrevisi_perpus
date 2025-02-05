@@ -7,6 +7,7 @@ use Illuminate\View\View;
 use App\Models\User;
 use Carbon\Carbon;
 use App\Models\Pustaka;
+use App\Models\Transaksi;
 
 class HomeController extends Controller
 {
@@ -51,7 +52,14 @@ class HomeController extends Controller
             $dailyRegistrations[] = $count;
         }
 
-        return view('Admin.adminHome', compact('dailyRegistrations'));
+        // Get borrowed books count using the active scope
+        $borrowedBooks = Transaksi::active()->count();
+        
+        // Get total available books
+        $totalBooks = Pustaka::count();
+        $availableBooks = Pustaka::whereDoesntHave('activeLoans')->count();
+
+        return view('Admin.adminHome', compact('dailyRegistrations', 'availableBooks', 'borrowedBooks'));
     }
 
     public function showBook($id): View

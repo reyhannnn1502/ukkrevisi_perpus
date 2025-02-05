@@ -31,6 +31,11 @@ class Pustaka extends Model
         'denda_hilang'
     ];
 
+    protected $attributes = [
+        'fp' => '1', // Set default value to '1' (Tersedia)
+        'jml_pinjam' => 0
+    ];
+
     public function ddc()
     {
         return $this->belongsTo(DDC::class, 'id_ddc', 'id_ddc');
@@ -50,4 +55,16 @@ class Pustaka extends Model
     {
         return $this->belongsTo(Pengarang::class, 'id_pengarang', 'id_pengarang');
     }
-} 
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaksi::class, 'id_pustaka', 'id_pustaka');
+    }
+
+    public function activeLoans()
+    {
+        return $this->transactions()
+            ->where('status_approval', 'approved')
+            ->where('status_pengembalian', '0');
+    }
+}

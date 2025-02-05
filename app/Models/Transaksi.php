@@ -45,6 +45,13 @@ class Transaksi extends Model
             ->withDefault(['nama_anggota' => 'Anggota tidak ditemukan']);
     }
 
+    // Add scope for active loans
+    public function scopeActive($query)
+    {
+        return $query->where('status_approval', 'approved')
+                     ->where('status_pengembalian', '0');
+    }
+
     // Helper method to check if transaction is active
     public function isActive()
     {
