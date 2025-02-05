@@ -152,9 +152,8 @@
 
 <body class="bg-gray-100">
     <div id="app">
+        @include('partials.navbar')
         
-    @include('partials.navbar')
-
         <!-- Main Content -->
         <main>
             <div class="profile-container">

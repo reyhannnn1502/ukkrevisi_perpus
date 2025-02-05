@@ -1,66 +1,77 @@
 <!-- Enhanced Navbar -->
-<nav class="navbar navbar-expand-md navbar-light bg-primary shadow-sm">
-            <div class="container">
-                <!-- Logo dan Brand -->
-                <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
-                    <span class="text-white">Perpustakaan</span>
-                </a>
+<nav class="navbar navbar-expand-md navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url('/') }}">
+            {{ config('app.name', 'Laravel') }}
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <!-- Left Side Of Navbar -->
+            <ul class="navbar-nav me-auto">
+                @auth
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('home') }}">
+                            <i class="fas fa-home"></i> Beranda
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('books.catalog') }}">
+                            <i class="fas fa-book"></i> Katalog
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('user.borrowing.history') }}">
+                            <i class="fas fa-history"></i> Riwayat Peminjaman
+                        </a>
+                    </li>
+                @endauth
+            </ul>
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Tombol Home -->
-                    <ul class="navbar-nav me-auto">
+            <!-- Right Side Of Navbar -->
+            <ul class="navbar-nav ms-auto">
+                @guest
+                    @if (Route::has('login'))
                         <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('home') }}">
-                                <i class="fas fa-home me-1"></i>
-                                Home
-                            </a>
+                            <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
                         </li>
+                    @endif
+
+                    @if (Route::has('register'))
                         <li class="nav-item">
-                            <a class="nav-link text-white d-flex align-items-center" href="{{ route('perpustakaan.show') }}">
-                                <i class="fas fa-university me-2"></i>
-                                <span>Profil Perpustakaan</span>
-                            </a>
+                            <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
                         </li>
-                    </ul>
-                    
-                    <ul class="navbar-nav ms-auto">
-                        @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('login') }}">{{ __('Login') }}</a>
-                                </li>
+                    @endif
+                @else
+                    <li class="nav-item dropdown">
+                        <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            @if(auth()->user()->anggota && auth()->user()->anggota->foto)
+                                <img src="{{ asset('storage/anggota/' . auth()->user()->anggota->foto) }}" 
+                                     class="nav-avatar me-2" alt="Profile">
                             @endif
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('register') }}">{{ __('Register') }}</a>
-                                </li>
-                            @endif
-                        @else
-                            <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle text-white nav-profile" href="#" role="button" data-bs-toggle="dropdown">
-                                    @if(Auth::user()->avatar)
-                                        <img class="nav-avatar" src="/avatars/{{ Auth::user()->avatar }}" alt="Profile">
-                                    @else
-                                        <img class="nav-avatar" src="{{ asset('/img/default_profile.png') }}" alt="Default Profile">
-                                    @endif
-                                    <span>{{ Auth::user()->name }}</span>
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-end">
-                                    <a class="dropdown-item" href="{{ route('logout') }}" 
-                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                        {{ __('Logout') }}
-                                    </a>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                                        @csrf
-                                    </form>
-                                </div>
-                            </li>
-                        @endguest
-                    </ul>
-                </div>
-            </div>
-        </nav>
+                            {{ Auth::user()->name }}
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item" href="{{ route('anggota.profile') }}">
+                                <i class="fas fa-user fa-fw"></i> Profile
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{{ route('logout') }}"
+                               onclick="event.preventDefault();
+                                             document.getElementById('logout-form').submit();">
+                                <i class="fas fa-sign-out-alt fa-fw"></i> {{ __('Logout') }}
+                            </a>
+
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                @csrf
+                            </form>
+                        </div>
+                    </li>
+                @endguest
+            </ul>
+        </div>
+    </div>
+</nav>
