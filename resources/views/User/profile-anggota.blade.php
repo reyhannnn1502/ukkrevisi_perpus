@@ -15,6 +15,7 @@
                                 <img src="{{ asset('avatars/' . $anggota->foto) }}" 
                                      class="rounded-circle mb-3" 
                                      style="width: 150px; height: 150px; object-fit: cover;"
+                                     onerror="this.src='{{ asset('images/default-avatar.png') }}'"
                                      alt="Foto Profile">
                             @else
                                 <img src="{{ asset('images/default-avatar.png') }}" 
@@ -165,4 +166,4 @@
         padding: 0.5rem;
     }
 </style>
-@endsection 
+@endsection
