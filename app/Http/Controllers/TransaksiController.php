@@ -43,47 +43,35 @@ class TransaksiController extends Controller
 
     public function store(Request $request)
     {
-        \DB::beginTransaction();
+        // Debug data yang akan disimpan
+        \Log::info('Data transaksi yang akan disimpan:', [
+            'id_pustaka' => $request->id_pustaka,
+            'id_anggota' => $request->id_anggota,
+            'tgl_pinjam' => $request->tgl_pinjam,
+            'tgl_kembali' => $request->tgl_kembali
+        ]);
+
         try {
-            // Validate if book exists and is available
-            $pustaka = Pustaka::findOrFail($request->id_pustaka);
-            if ($pustaka->fp != '1') {
-                return back()->with('error', 'Maaf, buku ini sedang dipinjam. Silakan coba lagi nanti.');
-            }
-
-            // Check if user already has pending or active loan for this book
-            $existingLoan = Transaksi::where('id_pustaka', $request->id_pustaka)
-                ->where('id_anggota', $request->id_anggota)
-                ->whereIn('status_approval', ['pending', 'approved'])
-                ->where('fp', '0')
-                ->first();
-
-            if ($existingLoan) {
-                return back()->with('error', 'Anda sudah memiliki peminjaman yang aktif atau pending untuk buku ini.');
-            }
-
-            // Create new transaction
             $transaksi = Transaksi::create([
                 'id_pustaka' => $request->id_pustaka,
                 'id_anggota' => $request->id_anggota,
                 'tgl_pinjam' => $request->tgl_pinjam,
                 'tgl_kembali' => $request->tgl_kembali,
-                'keterangan' => $request->keterangan,
                 'status_approval' => 'pending',
                 'fp' => '0'
             ]);
 
-            // Temporarily mark book as unavailable
-            $pustaka->update(['fp' => '0']);
+            // Debug transaksi yang tersimpan
+            \Log::info('Transaksi berhasil disimpan:', $transaksi->toArray());
 
-            \DB::commit();
+            // Update status buku menjadi dipinjam
+            $transaksi->pustaka->update(['fp' => '0']);
+
             return redirect()->route('user.borrowing.history')
-                ->with('success', 'Permintaan peminjaman buku berhasil diajukan dan menunggu persetujuan.');
-
+                ->with('success', 'Permintaan peminjaman buku berhasil diajukan.');
         } catch (\Exception $e) {
-            \DB::rollback();
-            \Log::error('Error in TransaksiController@store: ' . $e->getMessage());
-            return back()->with('error', 'Terjadi kesalahan saat mengajukan peminjaman. Silakan coba lagi.');
+            \Log::error('Error saat menyimpan transaksi: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat mengajukan peminjaman.');
         }
     }
 
@@ -166,4 +154,4 @@ class TransaksiController extends Controller
         
         return view('user.borrowing-history', compact('transactions'));
     }
-}
+} 

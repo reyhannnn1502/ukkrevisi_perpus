@@ -35,6 +35,7 @@
                                         <th>Tanggal Pinjam</th>
                                         <th>Tanggal Kembali</th>
                                         <th>Status</th>
+                                        <th>Denda</th>
                                         <th>Keterangan</th>
                                     </tr>
                                 </thead>
@@ -63,6 +64,18 @@
                                                 @elseif($transaction->status_approval == 'rejected')
                                                     <span class="badge bg-danger">Ditolak</span>
                                                 @endif
+                                            </td>
+                                            <td>
+                                                @php
+                                                    $denda = 0;
+                                                    if(!$transaction->tgl_pengembalian && $transaction->status_approval == 'approved') {
+                                                        $tglKembali = \Carbon\Carbon::parse($transaction->tgl_kembali);
+                                                        if($tglKembali->lt(\Carbon\Carbon::now())) {
+                                                            $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * ($transaction->pustaka->denda_terlambat ?? 0);
+                                                        }
+                                                    }
+                                                @endphp
+                                                Rp {{ number_format($denda, 0, ',', '.') }}
                                             </td>
                                             <td>
                                                 @if($transaction->status_approval == 'rejected')
