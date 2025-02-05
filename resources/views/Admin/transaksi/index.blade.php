@@ -103,28 +103,33 @@
                                               method="POST" class="d-inline">
                                             @csrf
                                             @method('PUT')
-                                            <button type="submit" class="btn btn-success btn-sm"
-                                                    onclick="return confirm('Setujui peminjaman ini?')">
+                                            <button type="submit" class="btn btn-success btn-sm">
                                                 Setujui
                                             </button>
                                         </form>
+                                        
                                         <button type="button" class="btn btn-danger btn-sm" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#rejectModal{{ $t->id_transaksi }}">
                                             Tolak
                                         </button>
-                                    @elseif($t->status_approval == 'approved' && !$t->tgl_pengembalian)
-                                        <form action="{{ route('admin.transaksi.pengembalian', $t->id_transaksi) }}" 
-                                              method="POST" class="d-inline">
-                                            @csrf
-                                            @method('PUT')
-                                            <button type="submit" class="btn btn-primary btn-sm"
-                                                    onclick="return confirm('Konfirmasi pengembalian buku?')">
-                                                Terima Kembali
-                                            </button>
-                                        </form>
-                                    @else
-                                        <button class="btn btn-secondary btn-sm" disabled>Selesai</button>
+                                    @elseif($t->status_approval == 'approved')
+                                        @if($t->status_pengembalian == 'pending')
+                                            <form action="{{ route('admin.transaksi.pengembalian', $t->id_transaksi) }}" 
+                                                  method="POST" class="d-inline">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    Konfirmasi Pengembalian
+                                                </button>
+                                            </form>
+                                        @elseif(!$t->tgl_pengembalian)
+                                            <span class="badge bg-info">Menunggu Request Pengembalian</span>
+                                        @else
+                                            <span class="badge bg-success">Selesai</span>
+                                        @endif
+                                    @elseif($t->status_approval == 'rejected')
+                                        <span class="badge bg-danger">Ditolak</span>
                                     @endif
                                 </td>
                             </tr>
@@ -175,4 +180,4 @@
         $('#dataTable').DataTable();
     });
 </script>
-@endpush 
+@endpush

@@ -18,6 +18,7 @@ class Transaksi extends Model
         'fp',
         'keterangan',
         'status_approval',
+        'status_pengembalian',
         'reject_reason',
         'created_at',
         'updated_at'

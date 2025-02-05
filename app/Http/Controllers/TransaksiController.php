@@ -75,20 +75,55 @@ class TransaksiController extends Controller
         }
     }
 
+    public function showReturnRequest()
+    {
+        $anggota = auth()->user()->anggota;
+        
+        $activeBorrowings = Transaksi::with('pustaka')
+            ->where('id_anggota', $anggota->id_anggota)
+            ->where('status_approval', 'approved')
+            ->whereNull('tgl_pengembalian')
+            ->whereNull('status_pengembalian') // Changed this condition
+            ->orWhere('status_pengembalian', '!=', 'completed') // Added this condition
+            ->get();
+
+        // Debug information
+        \Log::info('Active Borrowings Query:', [
+            'anggota_id' => $anggota->id_anggota,
+            'count' => $activeBorrowings->count(),
+            'borrowings' => $activeBorrowings->toArray()
+        ]);
+
+        return view('user.request-pengembalian', compact('activeBorrowings'));
+    }
+
+    public function submitReturnRequest(Request $request, $id)
+    {
+        $transaksi = Transaksi::findOrFail($id);
+        
+        $transaksi->update([
+            'status_pengembalian' => 'pending',
+            'keterangan' => $request->keterangan
+        ]);
+
+        return redirect()->route('user.borrowing.history')
+            ->with('success', 'Permintaan pengembalian buku berhasil diajukan.');
+    }
+
     public function pengembalian($id)
     {
         $transaksi = Transaksi::findOrFail($id);
         
-        // Update transaksi
         $transaksi->update([
             'tgl_pengembalian' => now(),
-            'fp' => '1'
+            'fp' => '1',
+            'status_pengembalian' => 'completed'
         ]);
 
         // Update status buku
         $transaksi->pustaka->update(['fp' => '1']);
 
-        return back()->with('success', 'Buku berhasil dikembalikan.');
+        return back()->with('success', 'Pengembalian buku berhasil dikonfirmasi.');
     }
 
     // Tambahkan method baru untuk approval
@@ -154,4 +189,4 @@ class TransaksiController extends Controller
         
         return view('user.borrowing-history', compact('transactions'));
     }
-} 
+}

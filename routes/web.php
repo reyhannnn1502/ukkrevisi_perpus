@@ -61,6 +61,9 @@ Route::middleware(['auth', 'user-access:user'])->group(function () {
     Route::get('/transaksi/create/{id}', [TransaksiController::class, 'create'])->name('transaksi.create');
     Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi.store');
     Route::get('/transaksi/history', [TransaksiController::class, 'userHistory'])->name('user.borrowing.history');
+
+    Route::get('/user/return-request/{id}', [TransaksiController::class, 'showReturnRequest'])->name('user.return.request');
+    Route::put('/user/return-request/{id}', [TransaksiController::class, 'submitReturnRequest'])->name('user.request.pengembalian');
 });
   
 /*------------------------------------------

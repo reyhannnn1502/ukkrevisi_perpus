@@ -27,6 +27,12 @@
                             <i class="fas fa-history"></i> Riwayat Peminjaman
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="dropdown-item" href="{{ route('user.return.request', auth()->user()->id) }}">
+                            <i class="fas fa-book fa-sm fa-fw mr-2 text-gray-400"></i>
+                            Request Pengembalian
+                        </a>
+                    </li>
                 @endauth
             </ul>
 
