@@ -80,6 +80,25 @@
                                                 <label class="form-label">Keterangan</label>
                                                 <textarea name="keterangan" class="form-control" rows="3" required></textarea>
                                             </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Kondisi Buku</label>
+                                                <select name="kondisi_buku" class="form-control" id="kondisiBuku{{ $transaksi->id_transaksi }}" required>
+                                                    <option value="baik">Baik</option>
+                                                    <option value="rusak">Rusak</option>
+                                                    <option value="hilang">Hilang</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3" id="rusakDetails{{ $transaksi->id_transaksi }}" style="display: none;">
+                                                <label class="form-label">Detail Kerusakan</label>
+                                                <select name="detail_rusak" class="form-control" id="detailRusak{{ $transaksi->id_transaksi }}">
+                                                    <option value="ringan">Rusak Ringan</option>
+                                                    <option value="berat">Rusak Berat</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3" id="denda{{ $transaksi->id_transaksi }}" style="display: none;">
+                                                <label class="form-label">Denda</label>
+                                                <input type="text" class="form-control" id="dendaAmount{{ $transaksi->id_transaksi }}" readonly>
+                                            </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -89,6 +108,45 @@
                                 </div>
                             </div>
                         </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                const kondisiBuku = document.getElementById('kondisiBuku{{ $transaksi->id_transaksi }}');
+                                const detailRusak = document.getElementById('detailRusak{{ $transaksi->id_transaksi }}');
+                                const rusakDetails = document.getElementById('rusakDetails{{ $transaksi->id_transaksi }}');
+                                const denda = document.getElementById('denda{{ $transaksi->id_transaksi }}');
+                                const dendaAmount = document.getElementById('dendaAmount{{ $transaksi->id_transaksi }}');
+                                const bayarButton = document.getElementById('bayarButton{{ $transaksi->id_transaksi }}');
+
+                                kondisiBuku.addEventListener('change', function () {
+                                    if (this.value === 'rusak') {
+                                        rusakDetails.style.display = 'block';
+                                        denda.style.display = 'block';
+                                        updateDenda();
+                                        bayarButton.style.display = 'block';
+                                    } else if (this.value === 'hilang') {
+                                        rusakDetails.style.display = 'none';
+                                        denda.style.display = 'block';
+                                        dendaAmount.value = 'Rp ' + ({{ $transaksi->pustaka->denda_hilang }}).toLocaleString();
+                                        bayarButton.style.display = 'block';
+                                    } else {
+                                        rusakDetails.style.display = 'none';
+                                        denda.style.display = 'none';
+                                        bayarButton.style.display = 'none';
+                                    }
+                                });
+
+                                detailRusak.addEventListener('change', updateDenda);
+
+                                function updateDenda() {
+                                    const dendaRusak = {{ $transaksi->pustaka->denda_rusak }};
+                                    if (detailRusak.value === 'ringan') {
+                                        dendaAmount.value = 'Rp ' + (dendaRusak * 0.5).toLocaleString();
+                                    } else if (detailRusak.value === 'berat') {
+                                        dendaAmount.value = 'Rp ' + (dendaRusak).toLocaleString();
+                                    }
+                                }
+                            });
+                        </script>
                         @endforeach
                     @endif
                 </div>

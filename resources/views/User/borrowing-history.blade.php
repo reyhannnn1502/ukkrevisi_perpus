@@ -36,6 +36,7 @@
                                         <th>Tanggal Kembali</th>
                                         <th>Status</th>
                                         <th>Denda</th>
+                                        <th>Kondisi</th> <!-- Added this line -->
                                         <th>Keterangan</th>
                                     </tr>
                                 </thead>
@@ -56,7 +57,9 @@
                                                 @if($transaction->status_approval == 'pending')
                                                     <span class="badge bg-warning">Menunggu Persetujuan</span>
                                                 @elseif($transaction->status_approval == 'approved')
-                                                    @if($transaction->fp == '1')
+                                                    @if($transaction->status_pengembalian == 'pending')
+                                                        <span class="badge bg-info">Menunggu Persetujuan Pengembalian</span>
+                                                    @elseif($transaction->fp == '1')
                                                         <span class="badge bg-success">Selesai</span>
                                                     @else
                                                         <span class="badge bg-primary">Sedang Dipinjam</span>
@@ -74,9 +77,15 @@
                                                             $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * ($transaction->pustaka->denda_terlambat ?? 0);
                                                         }
                                                     }
+                                                    if ($transaction->kondisi_buku == 'rusak') {
+                                                        $denda += $transaction->detail_rusak == 'ringan' ? $transaction->pustaka->denda_rusak * 0.5 : $transaction->pustaka->denda_rusak;
+                                                    } elseif ($transaction->kondisi_buku == 'hilang') {
+                                                        $denda += $transaction->pustaka->denda_hilang;
+                                                    }
                                                 @endphp
                                                 Rp {{ number_format($denda, 0, ',', '.') }}
                                             </td>
+                                            <td>{{ $transaction->kondisi_buku ?: '-' }}</td> <!-- Added this line -->
                                             <td>
                                                 @if($transaction->status_approval == 'rejected')
                                                     <span class="text-danger">{{ $transaction->reject_reason }}</span>

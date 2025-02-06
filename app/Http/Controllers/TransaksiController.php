@@ -103,7 +103,9 @@ class TransaksiController extends Controller
         
         $transaksi->update([
             'status_pengembalian' => 'pending',
-            'keterangan' => $request->keterangan
+            'keterangan' => $request->keterangan,
+            'kondisi_buku' => $request->kondisi_buku,
+            'detail_rusak' => $request->detail_rusak ?? null,
         ]);
 
         return redirect()->route('user.borrowing.history')
@@ -170,17 +172,6 @@ class TransaksiController extends Controller
             return redirect()->route('anggota.create')
                 ->with('error', 'Anda harus mendaftar sebagai anggota terlebih dahulu.');
         }
-
-        // Debug query SQL
-        \Log::info('Query SQL:', [
-            'sql' => Transaksi::where('id_anggota', $anggota->id_anggota)->toSql(),
-            'bindings' => ['id_anggota' => $anggota->id_anggota]
-        ]);
-
-        // Debug hasil query
-        $rawTransaksi = Transaksi::where('id_anggota', $anggota->id_anggota)->get();
-        \Log::info('Jumlah transaksi:', ['count' => $rawTransaksi->count()]);
-        \Log::info('Data transaksi:', $rawTransaksi->toArray());
 
         $transactions = Transaksi::with(['pustaka', 'pustaka.pengarang'])
             ->where('id_anggota', $anggota->id_anggota)

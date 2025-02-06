@@ -47,20 +47,5 @@
         </div>
     </div>
 
-    <!-- Password Update Section -->
-    <div class="profile-section">
-        <h3 class="section-header">{{ __('Update Password') }}</h3>
-        <div class="p-4">
-            @include('profile.partials.update-password-form')
-        </div>
-    </div>
-
-    <!-- Delete Account Section -->
-    <div class="profile-section">
-        <h3 class="section-header">{{ __('Delete Account') }}</h3>
-        <div class="p-4">
-            @include('profile.partials.delete-user-form')
-        </div>
-    </div>
-</div>
+    
 @endsection

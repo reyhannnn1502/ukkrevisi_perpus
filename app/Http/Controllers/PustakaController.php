@@ -43,6 +43,7 @@ class PustakaController extends Controller
             'harga_buku' => 'required|integer',
             'kondisi_buku' => 'required|string|max:15',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'denda_rusak' => 'required|integer',
         ]);
 
         if ($request->hasFile('gambar')) {
@@ -71,6 +72,7 @@ class PustakaController extends Controller
             'jml_pinjam' => 0,
             'denda_terlambat' => $request->denda_terlambat ?? 0,
             'denda_hilang' => $request->denda_hilang ?? 0,
+            'denda_rusak' => $request->denda_rusak,
         ]);
 
         return redirect()->route('admin.pustaka.index')
@@ -102,6 +104,7 @@ class PustakaController extends Controller
             'harga_buku' => 'required|integer',
             'kondisi_buku' => 'required|string|max:15',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'denda_rusak' => 'required|integer',
         ]);
 
         $pustaka = Pustaka::findOrFail($id);
@@ -137,6 +140,7 @@ class PustakaController extends Controller
             'fp' => $request->fp,
             'denda_terlambat' => $request->denda_terlambat,
             'denda_hilang' => $request->denda_hilang,
+            'denda_rusak' => $request->denda_rusak,
         ]);
 
         return redirect()->route('admin.pustaka.index')
@@ -208,4 +212,4 @@ class PustakaController extends Controller
         
         return back()->with('success', $message);
     }
-} 
+}

@@ -102,6 +102,12 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="denda_rusak">Denda Rusak</label>
+                            <input type="number" class="form-control" id="denda_rusak" name="denda_rusak" required>
+                        </div>
+                       
+
+                        <div class="form-group">
                             <label for="kondisi_buku">Kondisi Buku</label>
                             <select class="form-control" id="kondisi_buku" name="kondisi_buku" required>
                                 <option value="Baik">Baik</option>

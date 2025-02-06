@@ -28,7 +28,8 @@ class Pustaka extends Model
         'fp',
         'jml_pinjam',
         'denda_terlambat',
-        'denda_hilang'
+        'denda_hilang',
+        'denda_rusak'
     ];
 
     protected $attributes = [

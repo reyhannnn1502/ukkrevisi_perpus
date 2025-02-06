@@ -21,7 +21,9 @@ class Transaksi extends Model
         'status_pengembalian',
         'reject_reason',
         'created_at',
-        'updated_at'
+        'updated_at',
+        'kondisi_buku',
+        'detail_rusak'
     ];
 
     protected $dates = [
@@ -62,5 +64,23 @@ class Transaksi extends Model
     public function isPending()
     {
         return $this->status_approval === 'pending';
+    }
+
+    // Method to calculate the fine dynamically
+    public function calculateFine()
+    {
+        $denda = 0;
+        if(!$this->tgl_pengembalian && $this->status_approval == 'approved') {
+            $tglKembali = \Carbon\Carbon::parse($this->tgl_kembali);
+            if($tglKembali->lt(\Carbon\Carbon::now())) {
+                $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * ($this->pustaka->denda_terlambat ?? 0);
+            }
+        }
+        if ($this->kondisi_buku == 'rusak') {
+            $denda += $this->detail_rusak == 'ringan' ? $this->pustaka->denda_rusak * 0.5 : $this->pustaka->denda_rusak;
+        } elseif ($this->kondisi_buku == 'hilang') {
+            $denda += $this->pustaka->denda_hilang;
+        }
+        return $denda;
     }
 }

@@ -43,6 +43,7 @@
                             <th>Tgl Kembali</th>
                             <th>Status</th>
                             <th>Denda</th>
+                            <th>Kondisi</th> <!-- Added this line -->
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -70,19 +71,21 @@
                                 <td>{{ \Carbon\Carbon::parse($t->tgl_kembali)->format('d/m/Y') }}</td>
                                 <td>
                                     @if($t->status_approval == 'pending')
-                                        <span class="badge badge-warning">Menunggu Persetujuan</span>
+                                        <span class="badge bg-warning text-dark">Menunggu Persetujuan</span>
                                     @elseif($t->status_approval == 'approved')
-                                        @if(!$t->tgl_pengembalian)
+                                        @if($t->status_pengembalian == 'pending')
+                                            <span class="badge bg-info text-dark">Menunggu Persetujuan Pengembalian</span>
+                                        @elseif(!$t->tgl_pengembalian)
                                             @if(\Carbon\Carbon::now()->gt(\Carbon\Carbon::parse($t->tgl_kembali)))
-                                                <span class="badge badge-danger">Terlambat</span>
+                                                <span class="badge bg-danger text-white">Terlambat</span>
                                             @else
-                                                <span class="badge badge-info">Dipinjam</span>
+                                                <span class="badge bg-primary text-white">Dipinjam</span>
                                             @endif
                                         @else
-                                            <span class="badge badge-success">Dikembalikan</span>
+                                            <span class="badge bg-success text-white">Dikembalikan</span>
                                         @endif
-                                    @else
-                                        <span class="badge badge-danger">Ditolak</span>
+                                    @elseif($t->status_approval == 'rejected')
+                                        <span class="badge bg-danger text-white">Ditolak</span>
                                     @endif
                                 </td>
                                 <td>
@@ -94,9 +97,15 @@
                                                 $denda = $tglKembali->diffInDays(\Carbon\Carbon::now()) * ($t->pustaka->denda_terlambat ?? 0);
                                             }
                                         }
+                                        if ($t->kondisi_buku == 'rusak') {
+                                            $denda += $t->detail_rusak == 'ringan' ? $t->pustaka->denda_rusak * 0.5 : $t->pustaka->denda_rusak;
+                                        } elseif ($t->kondisi_buku == 'hilang') {
+                                            $denda += $t->pustaka->denda_hilang;
+                                        }
                                     @endphp
                                     Rp {{ number_format($denda, 0, ',', '.') }}
                                 </td>
+                                <td>{{ $t->kondisi_buku ?: '-' }}</td> <!-- Added this line -->
                                 <td>
                                     @if($t->status_approval == 'pending')
                                         <form action="{{ route('admin.transaksi.approve', $t->id_transaksi) }}" 
@@ -135,7 +144,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center">Tidak ada data transaksi</td>
+                                <td colspan="9" class="text-center">Tidak ada data transaksi</td>
                             </tr>
                         @endforelse
                     </tbody>
